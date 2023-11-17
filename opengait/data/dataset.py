@@ -4,7 +4,7 @@ import os.path as osp
 import torch.utils.data as tordata
 import json
 from utils import get_msg_mgr
-
+import random
 
 class DataSet(tordata.Dataset):
     def __init__(self, data_cfg, training):
@@ -13,6 +13,18 @@ class DataSet(tordata.Dataset):
                             a certain gait sequence presented as [label, type, view, paths];
         """
         self.__dataset_parser(data_cfg, training)
+        #group_wise shuffle,won't change results
+        # shuffle_group = []
+        # for i in range(int(len(self)/16)):
+        #     shuffle_group.append(self.seqs_info[i*16:(i+1)*16])
+        # random.shuffle(shuffle_group)
+        # shuffled_group_seqs_info = []
+        # for i in range(len(shuffle_group)):
+        #     shuffled_group_seqs_info.extend(shuffle_group[i])
+        # self.seqs_info = shuffled_group_seqs_info
+        #sample-wise shuffle, results changes a lot for RelPackSequence
+        # random.shuffle(self.seqs_info)
+
         self.cache = data_cfg['cache']
         self.label_list = [seq_info[0] for seq_info in self.seqs_info]
         self.types_list = [seq_info[1] for seq_info in self.seqs_info]
