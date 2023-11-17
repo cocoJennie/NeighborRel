@@ -14,7 +14,7 @@
                 "--master_port",
                 "20134",
                 "--nproc_per_node=1",
-                "/mnt/pami203/jqli/Models/NR/opengait/main.py",
+                "/mnt/pami203/jqli/Models/NeighborRel/opengait/main.py",
                 "--local_rank",
                 "1",
                 "--cfgs",
