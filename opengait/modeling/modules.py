@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from utils import clones, is_list_or_tuple
 from torchvision.ops import RoIAlign
-
+from einops import rearrange
 
 class HorizontalPoolingPyramid():
     """
@@ -72,6 +72,47 @@ class PackSequenceWrapper(nn.Module):
             return [torch.cat([ret[j] for ret in rets])
                     for j in range(len(rets[0]))]
         return torch.cat(rets)
+
+
+class RelPackSequenceWrapper(nn.Module):
+    def __init__(self, pooling_func):
+        super(RelPackSequenceWrapper, self).__init__()
+        self.pooling_func = pooling_func
+
+    def forward(self, seqs, flag, seqL, dim=2, options={}):
+        """
+            In  seqs: [n, c, s, ...]
+            Out rets: [n, ...]
+        """
+        if seqL is None:
+            return self.pooling_func(seqs, **options)
+        seqL = seqL[0].data.cpu().numpy().tolist()
+        start = [0] + np.cumsum(seqL).tolist()[:-1]
+
+        rets = []
+        for curr_start, curr_seqL in zip(start, seqL):
+            narrowed_seq = seqs.narrow(dim, curr_start, curr_seqL)
+            rets.append(self.pooling_func(narrowed_seq, **options))
+        if len(rets) > 0 and is_list_or_tuple(rets[0]):
+            return_ret = [torch.cat([ret[j] for ret in rets])
+                    for j in range(len(rets[0]))]
+        else:
+            return_ret = torch.cat(rets)
+        # neighbor core code fr torch.max as temporal poolingx
+        if flag:
+            #similairty based aggregation
+            n,c,h,w = return_ret[0].shape
+            feature = rearrange(return_ret[0], 'n c h w -> n (c h w)')
+            fea_l2norm = F.normalize(feature, p=2, dim=-1)
+            similarity = fea_l2norm.mm(fea_l2norm.T)
+            similarity = torch.where(similarity>0.2,similarity,0)
+            feature_agg = similarity @ feature
+            feature = rearrange(feature_agg, 'n (c h w) -> n c h w',c=c,h=h,w=w)
+            return_ret[0] = 0.2*feature + 0.8*return_ret[0]
+        
+        
+        return return_ret
+
 
 
 class BasicConv2d(nn.Module):

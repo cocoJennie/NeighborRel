@@ -3,7 +3,7 @@ import copy
 import torch.nn as nn
 
 from ..base_model import BaseModel
-from ..modules import SeparateFCs, BasicConv2d, SetBlockWrapper, HorizontalPoolingPyramid, PackSequenceWrapper
+from ..modules import SeparateFCs, BasicConv2d, SetBlockWrapper, HorizontalPoolingPyramid, RelPackSequenceWrapper
 
 
 class GaitSet(BaseModel):
@@ -39,7 +39,7 @@ class GaitSet(BaseModel):
         self.set_block2 = SetBlockWrapper(self.set_block2)
         self.set_block3 = SetBlockWrapper(self.set_block3)
 
-        self.set_pooling = PackSequenceWrapper(torch.max)
+        self.set_pooling = RelPackSequenceWrapper(torch.max)
 
         self.Head = SeparateFCs(**model_cfg['SeparateFCs'])
 
@@ -53,15 +53,15 @@ class GaitSet(BaseModel):
 
         del ipts
         outs = self.set_block1(sils)
-        gl = self.set_pooling(outs, seqL, options={"dim": 2})[0]
+        gl = self.set_pooling(outs, False, seqL, options={"dim": 2})[0]
         gl = self.gl_block2(gl)
 
         outs = self.set_block2(outs)
-        gl = gl + self.set_pooling(outs, seqL, options={"dim": 2})[0]
+        gl = gl + self.set_pooling(outs, False, seqL, options={"dim": 2})[0]
         gl = self.gl_block3(gl)
 
         outs = self.set_block3(outs)
-        outs = self.set_pooling(outs, seqL, options={"dim": 2})[0]
+        outs = self.set_pooling(outs, True, seqL, options={"dim": 2})[0]
         gl = gl + outs
 
         # Horizontal Pooling Matching, HPM
