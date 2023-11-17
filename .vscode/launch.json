@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: testerror",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/jqli/anaconda3/envs/gait/lib/python3.9/site-packages/torch/distributed/launch.py",//#FIXME: your environment # this is only fit for pytorch distributed 
+            // /home/jqli/anaconda3/envs/gait/lib/python3.7/site-packages/torch/distributed 120
+            // /home/jqli/anaconda3/envs/gait/lib/python3.9/site-packages/torch/distributed 124
+            // /home/jqli/anaconda3/envs/gait/lib/python3.8/site-packages/torch/distributed 121 122
+            "console": "integratedTerminal",
+            "args": [
+                "--master_port",
+                "20134",
+                "--nproc_per_node=1",
+                "/mnt/pami203/jqli/Models/NR/opengait/main.py",
+                "--local_rank",
+                "1",
+                "--cfgs",
+                "./configs/gaitset/gaitset.yaml",
+                "--phase",
+                // "train"
+                "test"
+                // "test", 
+                // "--log_to_file"
+                // "--iter",
+                // "80000"
+            ],
+            "env": {"CUDA_VISIBLE_DEVICES":"0"} 
+        }
+    ]
+}
