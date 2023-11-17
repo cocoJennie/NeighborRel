@@ -47,6 +47,9 @@ class GaitSet(BaseModel):
 
     def forward(self, inputs):
         ipts, labs, _, _, seqL = inputs
+        # _, labs_counts = torch.unique(labs, return_counts=True)
+        # if len(labs_counts) > 1:
+        #     self.msg_mgr.log_info(labs)
         sils = ipts[0]  # [n, s, h, w]
         if len(sils.size()) == 4:
             sils = sils.unsqueeze(1)
@@ -61,7 +64,7 @@ class GaitSet(BaseModel):
         gl = self.gl_block3(gl)
 
         outs = self.set_block3(outs)
-        outs = self.set_pooling(outs, True, seqL, options={"dim": 2})[0]
+        outs = self.set_pooling(outs, False, seqL, options={"dim": 2})[0]
         gl = gl + outs
 
         # Horizontal Pooling Matching, HPM

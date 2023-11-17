@@ -3,7 +3,7 @@ import random
 import torch
 import torch.distributed as dist
 import torch.utils.data as tordata
-
+import random
 
 class TripletSampler(tordata.sampler.Sampler):
     def __init__(self, dataset, batch_size, batch_shuffle=False):
@@ -86,10 +86,12 @@ class InferenceSampler(tordata.sampler.Sampler):
         batch_size_per_rank = int(self.batch_size / world_size)
         indx_batch_per_rank = []
 
-        for i in range(int(self.size / batch_size_per_rank)):
+        # random.shuffle(indices)
+        for i in range(int(self.size / batch_size_per_rank)): # batch number
             indx_batch_per_rank.append(
                 indices[i*batch_size_per_rank:(i+1)*batch_size_per_rank])
-
+       
+        # random.shuffle(indx_batch_per_rank)
         self.idx_batch_this_rank = indx_batch_per_rank[rank::world_size]
 
     def __iter__(self):
